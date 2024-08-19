@@ -21,44 +21,51 @@ public class QuestionPage {
         driver.get(EnvConfig.BASE_URL);
     }
 
-    /**
-     * Метод нажатия на кнопку куков
-     */
-    public void clickCookieButton() {
-        By buttonCookies = By.id("rcc-confirm-button"); // кнопка принятия использования куков
+    public void clickCookieButton() { // клик на кнопку принятия куков
+        By buttonCookies = By.id("rcc-confirm-button");
         driver.findElement(buttonCookies).click();
     }
 
-    public void checkQuestion_1(int numberField, String question, String answer) {
-
-        String fieldQuestion_1 = String.format("accordion__heading-%d", numberField); // локатор для поля Вопрос
-        String fieldAnswer_1 = String.format("accordion__panel-%s", numberField); // локатор для поля Ответ
-        String question_1 = driver.findElement(By.id(fieldQuestion_1)).getText(); // переменная с локатором для текста поля Вопрос
-
+    public void scroll() { // скроллинг до части страницы с вопросами
         WebElement element = driver.findElement(By.className("Home_FourPart__1uthg"));
-        ((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView();", element); // скролл до раздела с вопросами
-
-        new WebDriverWait(driver, Duration.ofSeconds(EnvConfig.WAIT))
-                .until(ExpectedConditions.elementToBeClickable(By.id(fieldQuestion_1))); // ожидание кликабельности поля Вопрос
-
-        driver.findElement(By.id(fieldQuestion_1)).click(); // клик на поле Вопрос
-
-        new WebDriverWait(driver, Duration.ofSeconds(EnvConfig.WAIT))
-                .until(ExpectedConditions.visibilityOfElementLocated(By.id(fieldAnswer_1))); // ожидание поля Ответ (анимация)
-
-        String answer_1 = driver.findElement(By.id(fieldAnswer_1)).getText(); // переменная с локатором для текста поля Ответ
-
-        assertTrue(driver.findElement(By.id(fieldAnswer_1)).isDisplayed()); // проверка, что поле Ответ появилось на экране
-
-        MatcherAssert.assertThat(question_1, containsString(question)); // проверка фактического текста вопроса с реальным текстом вопроса
-
-        MatcherAssert.assertThat(answer_1, containsString(answer));// проверка фактического текста ответа с реальным текстом ответа
+        ((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView();", element);
     }
 
-    public void checkQNA (int numberField, String question, String answer) { // метод с шагами
+    public void clickQuestionField(String field) { // клик по полям с вопросами
+        new WebDriverWait(driver, Duration.ofSeconds(EnvConfig.WAIT))
+                .until(ExpectedConditions.elementToBeClickable(By.id(field)));
+        driver.findElement(By.id(field)).click();
+    }
+
+    public String getQuestion(String field) { // получение фактического текста вопросов
+        return driver.findElement(By.id(field)).getText();
+    }
+
+    public void checkQuestion(String actualQuestion,String expectedQuestion)  { // сравнение фактических текстов вопросов с ожидаемым
+        MatcherAssert.assertThat(actualQuestion, containsString(expectedQuestion));
+    }
+
+    public String getAnswer(String field) { //получение фактического текста ответов
+        new WebDriverWait(driver, Duration.ofSeconds(EnvConfig.WAIT))
+                .until(ExpectedConditions.visibilityOfElementLocated(By.id(field)));
+        return driver.findElement(By.id(field)).getText();
+    }
+
+    public void checkAnswer(String field, String actualAnswer, String expectedAnswer) {
+        assertTrue(driver.findElement(By.id(field)).isDisplayed()); // проверка, что поле Ответ появилось на экране
+        MatcherAssert.assertThat(actualAnswer, containsString(expectedAnswer));// сравнение фактических текстов ответов с ожидаемым
+    }
+
+    public void checkQNA(int numberField, String expectedQuestion, String expectedAnswer) { // метод с шагами
         open();
         clickCookieButton();
-        checkQuestion_1(numberField, question, answer);
+        scroll();
 
+        String fieldQuestion = String.format("accordion__heading-%d", numberField);
+        clickQuestionField(fieldQuestion);
+        checkQuestion(getQuestion(fieldQuestion), expectedQuestion);
+
+        String fieldAnswer = String.format("accordion__panel-%s", numberField);
+        checkAnswer(fieldAnswer, getAnswer(fieldAnswer), expectedAnswer);
     }
 }

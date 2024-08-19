@@ -36,6 +36,7 @@ public class QuestionTest {
     @Test
     public void openMainPage() {
         WebDriver driver = factory.getDriver();
+
         QuestionPage objQuestionPage = new QuestionPage(driver);
         objQuestionPage.checkQNA(numberField,question,answer);
     }
